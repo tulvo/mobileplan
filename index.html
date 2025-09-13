@@ -159,21 +159,14 @@
       let halbuCommon = device - support - extra;
       let pay2yCommon =
         reqplan * kept_months + baseplan * (24 - kept_months) + additional * addi_months;
-      let pay3yCommon =
-        reqplan * kept_months + baseplan * (36 - kept_months) + additional * addi_months;
       let total2yCommon = halbuCommon + pay2yCommon;
-      let total3yCommon = halbuCommon + pay3yCommon;
 
       let halbuChoice = device - support;
       let pay2yChoice =
         reqplan_s * kept_months_s + baseplan_s * (24 - kept_months_s) + additional_s * addi_months_s;
-      let pay3yChoice =
-        reqplan_s * kept_months_s + baseplan_s * (36 - kept_months_s) + additional_s * addi_months_s;
       let total2yChoice = halbuChoice + pay2yChoice;
-      let total3yChoice = halbuChoice + pay3yChoice;
 
       var [style2y_c, style2y_s] = highlight(total2yCommon, total2yChoice);
-      var [style3y_c, style3y_s] = highlight(total3yCommon, total3yChoice);
 
       document.getElementById('result_c').innerHTML =
         '<b>[공통지원금 계산 결과]</b><br>' +
@@ -190,12 +183,7 @@
         style2y_c +
         '">2년 총비용: ' +
         total2yCommon.toLocaleString() +
-        '</span><br>' +
-        '<span style="' +
-        style3y_c +
-        '">3년 총비용: ' +
-        total3yCommon.toLocaleString() +
-        '</span>';
+        '</span><br>';
 
       document.getElementById('result_s').innerHTML =
         '<b>[선택약정 계산 결과]</b><br>' +
@@ -212,12 +200,7 @@
         style2y_s +
         '">2년 총비용: ' +
         total2yChoice.toLocaleString() +
-        '</span><br>' +
-        '<span style="' +
-        style3y_s +
-        '">3년 총비용: ' +
-        total3yChoice.toLocaleString() +
-        '</span>';
+        '</span><br>';
     }
 
     [
