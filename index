@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>지원금/약정 계산기</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+      background: #fafafb;
+      color: #333;
+    }
+    table {
+      width: 100%;
+      border-spacing: 0;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px #eee;
+    }
+    th,
+    td {
+      text-align: left;
+      padding: 12px 8px;
+      font-size: 15px;
+    }
+    th {
+      background: #f1f3f6;
+      font-weight: bold;
+    }
+    tr {
+      border-bottom: 1px solid #eee;
+    }
+    input[type='number'] {
+      width: 98%;
+      padding: 8px;
+      font-size: 16px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+    input[type='number']:disabled {
+      background: #eceff1;
+    }
+    .result {
+      margin-top: 18px;
+      padding: 12px;
+      background: #f4f6fa;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    @media (max-width: 600px) {
+      th,
+      td {
+        padding: 8px 4px;
+      }
+      .result {
+        font-size: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <form id="calcForm" autocomplete="off">
+    <table>
+      <tr>
+        <th>항목</th>
+        <th>공통지원금</th>
+        <th>선택약정</th>
+      </tr>
+      <tr>
+        <td>기기값</td>
+        <td><input type="number" id="device" min="0" /></td>
+        <td><input type="number" id="device_s" min="0" disabled /></td>
+      </tr>
+      <tr>
+        <td>공통지원금</td>
+        <td><input type="number" id="support" min="0" /></td>
+        <td><input type="number" id="support_s" min="0" disabled /></td>
+      </tr>
+      <tr>
+        <td>추가지원금</td>
+        <td><input type="number" id="extra" min="0" value="0" /></td>
+        <td><input type="number" id="extra_s" min="0" value="0" disabled /></td>
+      </tr>
+      <tr>
+        <td>의무요금제(월)</td>
+        <td><input type="number" id="reqplan" min="0" /></td>
+        <td><input type="number" id="reqplan_s" min="0" disabled /></td>
+      </tr>
+      <tr>
+        <td>요금제 유지기간(개월)</td>
+        <td><input type="number" id="kept_months" min="0" max="24" /></td>
+        <td><input type="number" id="kept_months_s" min="0" max="24" /></td>
+      </tr>
+      <tr>
+        <td>기존요금제(월)</td>
+        <td><input type="number" id="baseplan" min="0" /></td>
+        <td><input type="number" id="baseplan_s" min="0" disabled /></td>
+      </tr>
+      <tr>
+        <td>부가서비스(월)</td>
+        <td><input type="number" id="additional" min="0" /></td>
+        <td><input type="number" id="additional_s" min="0" disabled /></td>
+      </tr>
+      <tr>
+        <td>서비스 유지기간(개월)</td>
+        <td><input type="number" id="addi_months" min="0" max="24" /></td>
+        <td><input type="number" id="addi_months_s" min="0" max="24" disabled /></td>
+      </tr>
+    </table>
+  </form>
+
+  <div class="result" id="result_c"></div>
+  <div class="result" id="result_s"></div>
+
+  <script>
+    function syncInputs() {
+      document.getElementById('device_s').value = document.getElementById('device').value;
+      document.getElementById('support_s').value = document.getElementById('support').value;
+      document.getElementById('extra_s').value = 0;
+      document.getElementById('reqplan_s').value =
+        Math.round(document.getElementById('reqplan').value * 0.75) || 0;
+      document.getElementById('baseplan_s').value =
+        Math.round(document.getElementById('baseplan').value * 0.75) || 0;
+      document.getElementById('additional_s').value = document.getElementById('additional').value;
+      document.getElementById('addi_months_s').value = document.getElementById('addi_months').value;
+    }
+
+    function highlight(val1, val2) {
+      // 더 작은 값에 연노란색 배경, 나머지는 없음
+      return val1 < val2
+        ? ['background:#fff9c4;font-weight:bold;', '']
+        : val2 < val1
+        ? ['', 'background:#fff9c4;font-weight:bold;']
+        : ['', '']; // 동일할 경우 하이라이트 없음
+    }
+
+    function calculate() {
+      syncInputs();
+
+      let device = parseInt(document.getElementById('device').value) || 0;
+      let support = parseInt(document.getElementById('support').value) || 0;
+      let extra = parseInt(document.getElementById('extra').value) || 0;
+      let reqplan = parseInt(document.getElementById('reqplan').value) || 0;
+      let kept_months = parseInt(document.getElementById('kept_months').value) || 0;
+      let baseplan = parseInt(document.getElementById('baseplan').value) || 0;
+      let additional = parseInt(document.getElementById('additional').value) || 0;
+      let addi_months = parseInt(document.getElementById('addi_months').value) || 0;
+
+      let reqplan_s = Math.round(reqplan * 0.75) || 0;
+      let kept_months_s = parseInt(document.getElementById('kept_months_s').value) || 0;
+      let baseplan_s = Math.round(baseplan * 0.75) || 0;
+      let additional_s = additional;
+      let addi_months_s = addi_months;
+
+      let duty_common = reqplan + additional;
+      let duty_choice = reqplan_s + additional_s;
+
+      let halbuCommon = device - support - extra;
+      let pay2yCommon =
+        reqplan * kept_months + baseplan * (24 - kept_months) + additional * addi_months;
+      let pay3yCommon =
+        reqplan * kept_months + baseplan * (36 - kept_months) + additional * addi_months;
+      let total2yCommon = halbuCommon + pay2yCommon;
+      let total3yCommon = halbuCommon + pay3yCommon;
+
+      let halbuChoice = device - support;
+      let pay2yChoice =
+        reqplan_s * kept_months_s + baseplan_s * (24 - kept_months_s) + additional_s * addi_months_s;
+      let pay3yChoice =
+        reqplan_s * kept_months_s + baseplan_s * (36 - kept_months_s) + additional_s * addi_months_s;
+      let total2yChoice = halbuChoice + pay2yChoice;
+      let total3yChoice = halbuChoice + pay3yChoice;
+
+      var [style2y_c, style2y_s] = highlight(total2yCommon, total2yChoice);
+      var [style3y_c, style3y_s] = highlight(total3yCommon, total3yChoice);
+
+      document.getElementById('result_c').innerHTML =
+        '<b>[공통지원금 계산 결과]</b><br>' +
+        '할부원금: ' +
+        halbuCommon.toLocaleString() +
+        '<br>' +
+        '의무요금: 월 ' +
+        duty_common.toLocaleString() +
+        '<br>' +
+        '기존요금: 월 ' +
+        baseplan.toLocaleString() +
+        '<br>' +
+        '<span style="' +
+        style2y_c +
+        '">2년 총비용: ' +
+        total2yCommon.toLocaleString() +
+        '</span><br>' +
+        '<span style="' +
+        style3y_c +
+        '">3년 총비용: ' +
+        total3yCommon.toLocaleString() +
+        '</span>';
+
+      document.getElementById('result_s').innerHTML =
+        '<b>[선택약정 계산 결과]</b><br>' +
+        '할부원금: ' +
+        halbuChoice.toLocaleString() +
+        '<br>' +
+        '의무요금: 월 ' +
+        duty_choice.toLocaleString() +
+        '<br>' +
+        '기존요금: 월 ' +
+        baseplan_s.toLocaleString() +
+        '<br>' +
+        '<span style="' +
+        style2y_s +
+        '">2년 총비용: ' +
+        total2yChoice.toLocaleString() +
+        '</span><br>' +
+        '<span style="' +
+        style3y_s +
+        '">3년 총비용: ' +
+        total3yChoice.toLocaleString() +
+        '</span>';
+    }
+
+    [
+      'device',
+      'support',
+      'extra',
+      'reqplan',
+      'kept_months',
+      'baseplan',
+      'additional',
+      'addi_months',
+      'kept_months_s',
+    ].forEach((id) => {
+      document.getElementById(id).addEventListener('input', calculate);
+    });
+    calculate();
+  </script>
+</body>
+</html>
